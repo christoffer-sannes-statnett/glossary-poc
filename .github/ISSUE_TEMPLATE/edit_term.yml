@@ -22,7 +22,7 @@ body:
       placeholder: Example term
 
   - type: input
-    id: no
+    id: "no"
     attributes:
       label: Bokmål (la stå tomt for å beholde nåværende)
       placeholder: Eksempelbegrep

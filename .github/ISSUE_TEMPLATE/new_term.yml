@@ -24,7 +24,7 @@ body:
       required: true
 
   - type: input
-    id: no
+    id: "no"
     attributes:
       label: Norwegian Bokmål label
       placeholder: Eksempelbegrep

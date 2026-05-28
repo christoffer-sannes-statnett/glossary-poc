@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: METERING_VALUE
+en: Metering Value
+"no": Måleverdi
+nn: Måleverdi
+description_no: >
+  En Intervallverdi eller Målerstand. Kan være en målt eller estimert verdi. Fellesbetegnelse på alle verdier som representerer et forbruk eller produksjon på et Målepunkt eller på et aggregert nivå.
+status: active
+replaces: null

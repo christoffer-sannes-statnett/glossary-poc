@@ -27,6 +27,11 @@
       "description": "Norwegian Nynorsk label.",
       "minLength": 1
     },
+    "abbreviation": {
+      "type": "string",
+      "description": "Optional abbreviation for the term, e.g. API or VAT.",
+      "minLength": 1
+    },
     "description_no": {
       "type": "string",
       "description": "Human-readable definition in Norwegian Bokmål. Optional for self-explanatory terms.",

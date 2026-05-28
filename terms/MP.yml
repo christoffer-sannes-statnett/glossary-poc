@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: MP
+en: Metering Point
+"no": Målepunkt
+nn: Målepunkt
+description_no: >
+  Et punkt der energiprodukter måles. Kan være av type produksjon, forbruk,
+  kombinert eller utveksling. Målepunkt kan også være virtuelle eller
+  tekniske målepunkt.

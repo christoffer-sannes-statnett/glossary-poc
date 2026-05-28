@@ -1,0 +1,72 @@
+name: Suggest new term
+description: Propose a new term to be added to the business glossary.
+title: "[New term]: "
+labels:
+  - new-term
+body:
+  - type: input
+    id: slug
+    attributes:
+      label: Slug
+      description: >
+        Unique identifier in SCREAMING_SNAKE_CASE (e.g. GRID_POINT).
+        This is permanent and cannot be changed once merged.
+      placeholder: EXAMPLE_TERM
+    validations:
+      required: true
+
+  - type: input
+    id: en
+    attributes:
+      label: English label
+      placeholder: Example term
+    validations:
+      required: true
+
+  - type: input
+    id: no
+    attributes:
+      label: Norwegian Bokmål label
+      placeholder: Eksempelbegrep
+    validations:
+      required: true
+
+  - type: input
+    id: nn
+    attributes:
+      label: Norwegian Nynorsk label
+      placeholder: Eksempelbegrep
+    validations:
+      required: true
+
+  - type: textarea
+    id: description_no
+    attributes:
+      label: Beskrivelse (norsk bokmål)
+      description: En kort, forståelig forklaring av begrepet. 1–3 setninger. Valgfritt for selvforklarende begreper.
+      placeholder: Beskriv hva dette begrepet betyr i en forretningskontekst.
+
+  - type: textarea
+    id: description_en
+    attributes:
+      label: Description (English)
+      description: Optional English definition.
+      placeholder: Describe what this term means in a business context.
+
+  - type: dropdown
+    id: status
+    attributes:
+      label: Status
+      options:
+        - draft
+        - active
+      default: 0
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        Once submitted, a reviewer will label this issue `new-term` to trigger an automatic pull request.
+        You do not need to know Git — the PR will be created for you.

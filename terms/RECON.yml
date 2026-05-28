@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: RECON
+en: Reconciliation
+"no": Avviksoppgjør
+nn: Avviksoppgjør
+description_no: >
+  Oppgjør mellom aktørene for alle endringer som blir registrert etter
+  grunnlaget for balanseavregningen er låst (D+5). Det er Elhub som regner
+  ut og fakturerer dette oppgjøret.

@@ -1,0 +1,39 @@
+name: Merk begrep som utgått
+description: Merk et eksisterende begrep som utgått, eventuelt med et nytt begrep som erstatter det.
+title: "[Utgått begrep]: "
+labels:
+  - deprecate-term
+body:
+  - type: input
+    id: slug
+    attributes:
+      label: Slug på begrepet som skal merkes utgått
+      description: >
+        Den unike identifikatoren til begrepet (f.eks. CONSUMPTION_POINT).
+        Du finner slugen i slug-kolonnen i ordlisten.
+      placeholder: GAMMELT_BEGREP
+    validations:
+      required: true
+
+  - type: input
+    id: replaces
+    attributes:
+      label: Erstattes av (valgfritt)
+      description: >
+        Slug på det nye begrepet som erstatter dette, om det finnes.
+        La stå tomt hvis begrepet bare fjernes uten erstatning.
+      placeholder: NYTT_BEGREP
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: Begrunnelse (valgfritt)
+      description: Kort forklaring på hvorfor begrepet utgår.
+      placeholder: Begrepet er erstattet av...
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        Begrepet vil få status «utgått» og vil fortsatt vises i ordlisten med en tydelig markering.
+        Det slettes ikke — historikken bevares.

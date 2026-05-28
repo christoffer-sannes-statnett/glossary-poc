@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ["--maxkb=100"]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: no-commit-to-branch
+        args: ["--branch", "main"]
+
+  - repo: local
+    hooks:
+      - id: validate-terms
+        name: Validate glossary terms
+        entry: python scripts/validate.py
+        language: python
+        additional_dependencies: ["pyyaml", "jsonschema"]
+        files: ^terms/.*\.yml$
+        pass_filenames: false

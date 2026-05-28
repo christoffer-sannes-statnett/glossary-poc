@@ -1,0 +1,98 @@
+name: Deprecate term — open PR
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  open-pr:
+    if: github.event.label.name == 'deprecate-term'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PyYAML
+        run: pip install pyyaml -q
+
+      - name: Parse issue form and deprecate term
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          # GITHUB_TOKEN is used here for simplicity (PoC).
+          # Limitation: the validate.yml check will NOT auto-trigger on the
+          # auto-created PR — a reviewer must push a change or run it manually.
+          # To fix this for production, replace with a GitHub App token:
+          #   https://github.com/actions/create-github-app-token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, re, sys
+          import subprocess
+
+          import yaml
+
+          body    = os.environ["ISSUE_BODY"]
+          issue_n = os.environ["ISSUE_NUMBER"]
+
+          def field(label):
+              pattern = rf"###\s+{re.escape(label)}\s*\n+(.*?)(?=\n###|\Z)"
+              m = re.search(pattern, body, re.DOTALL)
+              val = m.group(1).strip() if m else ""
+              return val if val and val != "_No response_" else ""
+
+          slug = field("Slug på begrepet som skal merkes utgått").upper().replace(" ", "_")
+          if not slug:
+              print("ERROR: slug is required.", file=sys.stderr)
+              sys.exit(1)
+
+          term_path = f"terms/{slug}.yml"
+          if not os.path.exists(term_path):
+              print(f"ERROR: {term_path} does not exist. Check the slug.", file=sys.stderr)
+              sys.exit(1)
+
+          with open(term_path) as f:
+              data = yaml.safe_load(f)
+
+          if data.get("status") == "deprecated":
+              print(f"WARNING: {slug} is already deprecated.", file=sys.stderr)
+
+          data["status"] = "deprecated"
+          replaces_slug = field("Erstattes av (valgfritt)").upper().replace(" ", "_")
+          if replaces_slug:
+              data["replaces"] = replaces_slug
+
+          with open(term_path, "w") as f:
+              f.write("# yaml-language-server: $schema=../schema/term.schema.json\n")
+              yaml.dump(data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+
+          branch = f"deprecate-term/{slug.lower()}-issue-{issue_n}"
+          subprocess.run(["git", "config", "user.name",  "github-actions[bot]"], check=True)
+          subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
+          subprocess.run(["git", "checkout", "-b", branch], check=True)
+          subprocess.run(["git", "add", term_path], check=True)
+          msg = f"fix: deprecate term {slug}"
+          if replaces_slug:
+              msg += f", replaced by {replaces_slug}"
+          subprocess.run(["git", "commit", "-m", f"{msg} (closes #{issue_n})"], check=True)
+          subprocess.run(["git", "push", "origin", branch], check=True)
+
+          pr_body = f"Marks **{slug}** as deprecated as requested in #{issue_n}."
+          if replaces_slug:
+              pr_body += f"\n\nReplaced by: **{replaces_slug}**"
+          pr_body += "\n\nPlease review before merging."
+
+          subprocess.run([
+              "gh", "pr", "create",
+              "--title", f"Deprecate term: {slug}",
+              "--body",  pr_body,
+              "--head",  branch,
+              "--base",  "main",
+              "--draft",
+          ], check=True)
+
+          print(f"PR created to deprecate {slug}.")
+          PYEOF

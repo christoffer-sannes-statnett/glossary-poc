@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: QUALITY_CODE
+en: Quality Code
+"no": Kvalitet
+nn: Kvalitet
+description_no: >
+  En statuskode som kan settes på en måleverdi. Gyldige koder er:
+  21 Midlertidig, 46 Ingen verdi, 56 Estimert, 58 Tilbaketrukket,
+  81 Endelig estimert, 127 Målt.

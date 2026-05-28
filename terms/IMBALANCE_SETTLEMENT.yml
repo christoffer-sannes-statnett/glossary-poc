@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: IMBALANCE_SETTLEMENT
+en: Imbalance Settlement
+"no": Balanseavregning
+nn: Balanseavregning
+description_no: >
+  Balanseavregningen gjøres ikke i Elhub men i eSett, og er avregningen av
+  ubalanser i forhold til anmelding av kraft. Dette gjøres basert på
+  Balanseavregningsgrunnlag som regnes ut i Elhub.

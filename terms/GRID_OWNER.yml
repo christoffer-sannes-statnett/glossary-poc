@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: GRID_OWNER
+en: Grid Owner
+"no": Netteier
+nn: Netteier
+description_no: >
+  En aktørtype som innehas av et nettselskap. En netteier er ansvarlig for
+  deler av strukturdata og grunndata, og registrering av måleverdier, i ett
+  eller flere nettområder.

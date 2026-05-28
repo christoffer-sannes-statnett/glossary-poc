@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: INSTALLED_CAPACITY
+en: Installed Capacity
+"no": Installert effekt
+nn: Installert effekt
+description_no: >
+  Beskriver hvor mye energi som maksimalt kan produseres på et
+  produksjonsanlegg. Verdien gjelder hva som maksimalt kan produseres i
+  anlegget, ikke hva som maksimalt kan leveres ut på nettet. I Elhub er
+  verdien gitt i kW.

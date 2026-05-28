@@ -1,0 +1,53 @@
+name: Rediger begrep
+description: Foreslå endringer i et eksisterende begrep i ordlisten.
+title: "[Rediger begrep]: "
+labels:
+  - edit-term
+body:
+  - type: input
+    id: slug
+    attributes:
+      label: Slug
+      description: >
+        Den unike identifikatoren til begrepet du vil endre (f.eks. GRID_POINT).
+        Du finner slugen i slug-kolonnen i ordlisten.
+      placeholder: EKSEMPEL_BEGREP
+    validations:
+      required: true
+
+  - type: input
+    id: en
+    attributes:
+      label: Engelsk navn (la stå tomt for å beholde nåværende)
+      placeholder: Example term
+
+  - type: input
+    id: no
+    attributes:
+      label: Bokmål (la stå tomt for å beholde nåværende)
+      placeholder: Eksempelbegrep
+
+  - type: input
+    id: nn
+    attributes:
+      label: Nynorsk (la stå tomt for å beholde nåværende)
+      placeholder: Eksempelbegrep
+
+  - type: textarea
+    id: description_no
+    attributes:
+      label: Beskrivelse på norsk (la stå tomt for å beholde nåværende)
+      placeholder: En kort, forståelig forklaring av begrepet.
+
+  - type: textarea
+    id: description_en
+    attributes:
+      label: Description in English (leave blank to keep current)
+      placeholder: A short, human-readable definition of the term.
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        Fyll bare ut feltene du ønsker å endre. Tomme felt beholdes som de er.
+        Når du har sendt inn vil en behandler opprette en pull request med endringene dine.

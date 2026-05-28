@@ -1,0 +1,23 @@
+name: Validate
+
+on:
+  pull_request:
+    paths:
+      - "terms/**"
+      - "schema/**"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Install dev dependencies
+        run: uv sync --group dev
+
+      - name: Run pre-commit checks
+        run: SKIP=no-commit-to-branch uv run pre-commit run --all-files

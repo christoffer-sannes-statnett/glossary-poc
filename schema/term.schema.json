@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/term.schema.json",
+  "title": "GlossaryTerm",
+  "description": "A single business glossary term.",
+  "type": "object",
+  "required": ["slug", "en", "no", "nn"],
+  "additionalProperties": false,
+  "properties": {
+    "slug": {
+      "type": "string",
+      "description": "Primary key — stable identifier in SCREAMING_SNAKE_CASE.",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "en": {
+      "type": "string",
+      "description": "English label.",
+      "minLength": 1
+    },
+    "no": {
+      "type": "string",
+      "description": "Norwegian Bokmål label.",
+      "minLength": 1
+    },
+    "nn": {
+      "type": "string",
+      "description": "Norwegian Nynorsk label.",
+      "minLength": 1
+    },
+    "description_no": {
+      "type": "string",
+      "description": "Human-readable definition in Norwegian Bokmål. Optional for self-explanatory terms.",
+      "minLength": 5
+    },
+    "description_en": {
+      "type": "string",
+      "description": "Human-readable definition in English. Optional.",
+      "minLength": 5
+    },
+    "status": {
+      "type": "string",
+      "description": "Lifecycle status of the term.",
+      "enum": ["active", "deprecated", "draft"]
+    },
+    "replaces": {
+      "description": "Slug of the predecessor term if this term supersedes another, otherwise null.",
+      "oneOf": [
+        { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+        { "type": "null" }
+      ]
+    }
+  }
+}

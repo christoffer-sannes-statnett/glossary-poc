@@ -1,0 +1,101 @@
+name: New term — open PR
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  open-pr:
+    if: github.event.label.name == 'new-term'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse issue form and create term file
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          # GITHUB_TOKEN is used here for simplicity (PoC).
+          # Limitation: the validate.yml check will NOT auto-trigger on the
+          # auto-created PR — a reviewer must push a change or run it manually.
+          # To fix this for production, replace with a GitHub App token:
+          #   https://github.com/actions/create-github-app-token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, re, subprocess, sys
+
+          body    = os.environ["ISSUE_BODY"]
+          issue_n = os.environ["ISSUE_NUMBER"]
+
+          def field(label):
+              """Extract the value below a ### Label heading in a GitHub issue form."""
+              pattern = rf"###\s+{re.escape(label)}\s*\n+(.*?)(?=\n###|\Z)"
+              m = re.search(pattern, body, re.DOTALL)
+              val = m.group(1).strip() if m else ""
+              return val if val and val != "_No response_" else ""
+
+          slug           = field("Slug").upper().replace(" ", "_")
+          en             = field("English label")
+          no             = field("Norwegian Bokmål label")
+          nn             = field("Norwegian Nynorsk label")
+          description_no = field("Beskrivelse (norsk bokmål)")
+          description_en = field("Description (English)")
+          status         = field("Status") or "draft"
+
+          if not slug or not en or not no or not nn:
+              print("ERROR: slug, English label, Bokmål, and Nynorsk are required.", file=sys.stderr)
+              sys.exit(1)
+
+          slug_pattern = re.compile(r'^[A-Z][A-Z0-9_]*$')
+          if not slug_pattern.match(slug):
+              print(f"ERROR: slug '{slug}' is not valid SCREAMING_SNAKE_CASE.", file=sys.stderr)
+              sys.exit(1)
+
+          term_path = f"terms/{slug}.yml"
+          if os.path.exists(term_path):
+              print(f"ERROR: {term_path} already exists.", file=sys.stderr)
+              sys.exit(1)
+
+          lines = [
+              "# yaml-language-server: $schema=../schema/term.schema.json",
+              f"slug: {slug}",
+              f"en: {en}",
+              f'"no": {no}',
+              f"nn: {nn}",
+          ]
+          if description_no:
+              lines += ["description_no: >", f"  {description_no}"]
+          if description_en:
+              lines += ["description_en: >", f"  {description_en}"]
+          lines += [f"status: {status}", "replaces: null"]
+          content = "\n".join(lines) + "\n"
+
+          with open(term_path, "w") as f:
+              f.write(content)
+
+          branch = f"new-term/{slug.lower()}-issue-{issue_n}"
+          subprocess.run(["git", "config", "user.name",  "github-actions[bot]"], check=True)
+          subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
+          subprocess.run(["git", "checkout", "-b", branch], check=True)
+          subprocess.run(["git", "add", term_path], check=True)
+          subprocess.run(["git", "commit", "-m", f"feat: add term {slug} (closes #{issue_n})"], check=True)
+          subprocess.run(["git", "push", "origin", branch], check=True)
+
+          pr_body = f"Adds **{slug}** as requested in #{issue_n}.\n\nPlease review the generated YAML before merging."
+          subprocess.run([
+              "gh", "pr", "create",
+              "--title", f"Add term: {slug}",
+              "--body",  pr_body,
+              "--head",  branch,
+              "--base",  "main",
+              "--draft",
+          ], check=True)
+
+          print(f"PR created for {slug}.")
+          PYEOF

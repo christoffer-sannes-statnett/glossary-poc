@@ -94,7 +94,6 @@ jobs:
               "--body",  pr_body,
               "--head",  branch,
               "--base",  "main",
-              "--draft",
           ], check=True)
 
           print(f"PR created to deprecate {slug}.")

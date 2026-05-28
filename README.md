@@ -1,8 +1,8 @@
 # Business Glossary
 
-Single source of truth for business terms used across systems, teams, and languages (EN/NO/NN).
+Single source of truth for business terms used across systems, teams, and languages (NO/NN/EN).
 
-Terms are maintained as YAML files in this repo. On every merge to `main`, the CI pipeline validates all terms and publishes a searchable HTML page to GitHub Pages — which is also embedded in Confluence.
+Terms are maintained as YAML files in this repo. On every merge to `main`, the CI pipeline validates all terms and publishes a searchable HTML page to GitHub Pages.
 
 **[→ Browse the glossary](https://christoffer-sannes-statnett.github.io/glossary-poc/)**
 
@@ -23,11 +23,11 @@ Use the GitHub issue forms to suggest changes. A reviewer will label your issue 
 Each term is a single file in `terms/`. The filename must match the slug.
 
 ```yaml
-# terms/MY_TERM.yml
+# yaml-language-server: $schema=../schema/term.schema.json
 slug: MY_TERM
-en: My term
 "no": Mitt begrep
 nn: Mitt begrep
+en: My term
 description_no: >
   Valgfri forklaring på norsk.
 description_en: >
@@ -36,16 +36,16 @@ description_en: >
 
 **Rules:**
 - `slug` is permanent — choose carefully (SCREAMING_SNAKE_CASE, ASCII only)
+- `"no"` must be quoted (YAML 1.1 treats bare `no` as boolean)
 - Descriptions are optional for self-explanatory terms
 - To deprecate, add `replaces: OTHER_SLUG` — status is inferred automatically
-- The `"no"` key must be quoted (YAML 1.1 treats bare `no` as boolean)
 
 **Local setup:**
 
 ```bash
 uv sync --group dev
-uv run pre-commit install   # runs checks on every commit
-uv run python scripts/generate.py   # preview output in dist/
+uv run pre-commit install          # runs checks on every commit
+uv run python scripts/generate.py  # preview output in dist/
 ```
 
 ---
@@ -54,7 +54,7 @@ uv run python scripts/generate.py   # preview output in dist/
 
 ```
 terms/*.yml  →  validate  →  dist/terms.json
-                              dist/{en,no,nn}.json   (locale maps)
+                              dist/{no,nn,en}.json   (locale maps)
                               dist/index.html        (GitHub Pages)
 ```
 

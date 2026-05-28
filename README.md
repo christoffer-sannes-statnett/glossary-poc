@@ -50,6 +50,38 @@ uv run python scripts/generate.py  # preview output in dist/
 
 ---
 
+## For developers
+
+The pipeline publishes machine-readable JSON on every merge to `main`. Use these endpoints to integrate the glossary into your app or service.
+
+| Endpoint | Description |
+|---|---|
+| [`/terms.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/terms.json) | Full list of all terms with all fields |
+| [`/no.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/no.json) | Flat `slug → Bokmål label` map |
+| [`/nn.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/nn.json) | Flat `slug → Nynorsk label` map |
+| [`/en.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/en.json) | Flat `slug → English label` map |
+
+**Runtime fetch** — always reflects the current glossary:
+```js
+const terms = await fetch('https://christoffer-sannes-statnett.github.io/glossary-poc/terms.json')
+  .then(r => r.json())
+
+const mp = terms.find(t => t.slug === 'MP')
+// { slug: 'MP', no: 'Målepunkt', en: 'Metering Point', ... }
+```
+
+**Locale map** — useful for dropdown labels, enum display names, column headers:
+```js
+const labels = await fetch('https://christoffer-sannes-statnett.github.io/glossary-poc/no.json')
+  .then(r => r.json())
+
+labels['MP']  // → "Målepunkt"
+```
+
+**Build-time** — download `terms.json` in your CI pipeline and bundle it with your app to avoid a runtime dependency on this service.
+
+---
+
 ## How it works
 
 ```

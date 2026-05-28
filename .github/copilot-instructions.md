@@ -2,6 +2,8 @@
 
 This repo is a business glossary for Elhub. Terms are defined as YAML files in `terms/`. PRs are either hand-authored by developers or auto-generated from GitHub issue forms submitted by non-technical staff.
 
+If everything looks correct, do not leave any comments. Approve silently. Only comment when you have a specific, actionable concern.
+
 ## What to focus on
 
 ### Slug (`terms/<SLUG>.yml`)

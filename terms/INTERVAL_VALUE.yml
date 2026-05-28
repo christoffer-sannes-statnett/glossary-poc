@@ -1,11 +1,13 @@
 # yaml-language-server: $schema=../schema/term.schema.json
 slug: INTERVAL_VALUE
 en: Interval Value
-"no": Intervallverdi
-nn: HOPPLA
-description_no: >
-  Fellesbetegnelsen for Intervallstand og Intervallvolum.
-description_en: >
-  Common term for intervals
+'no': Intervallverdi
+nn: Intervallverdi
+description_no: 'Fellesbetegnelsen for Intervallstand og Intervallvolum.
+
+  '
+description_en: 'Common term for intervals
+
+  '
 status: active
 replaces: null

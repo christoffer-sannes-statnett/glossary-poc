@@ -1,6 +1,6 @@
-name: Suggest new term
-description: Propose a new term to be added to the business glossary.
-title: "[New term]: "
+name: Foreslå nytt begrep
+description: Foreslå et nytt begrep som skal legges til i ordlisten.
+title: "[Nytt begrep]: "
 labels:
   - new-term
 body:
@@ -9,16 +9,16 @@ body:
     attributes:
       label: Slug
       description: >
-        Unique identifier in SCREAMING_SNAKE_CASE (e.g. GRID_POINT).
-        This is permanent and cannot be changed once merged.
-      placeholder: EXAMPLE_TERM
+        Unik identifikator i SCREAMING_SNAKE_CASE (f.eks. GRID_POINT).
+        Denne er permanent og kan ikke endres etter merging.
+      placeholder: EKSEMPEL_BEGREP
     validations:
       required: true
 
   - type: input
     id: en
     attributes:
-      label: English label
+      label: Engelsk navn
       placeholder: Example term
     validations:
       required: true
@@ -26,7 +26,7 @@ body:
   - type: input
     id: "no"
     attributes:
-      label: Norwegian Bokmål label
+      label: Bokmål
       placeholder: Eksempelbegrep
     validations:
       required: true
@@ -34,7 +34,7 @@ body:
   - type: input
     id: nn
     attributes:
-      label: Norwegian Nynorsk label
+      label: Nynorsk
       placeholder: Eksempelbegrep
     validations:
       required: true
@@ -49,8 +49,8 @@ body:
   - type: textarea
     id: description_en
     attributes:
-      label: Description (English)
-      description: Optional English definition.
+      label: Beskrivelse (engelsk)
+      description: Valgfri forklaring på engelsk.
       placeholder: Describe what this term means in a business context.
 
   - type: dropdown
@@ -68,5 +68,5 @@ body:
     attributes:
       value: |
         ---
-        Once submitted, a reviewer will label this issue `new-term` to trigger an automatic pull request.
-        You do not need to know Git — the PR will be created for you.
+        Når du har sendt inn vil en behandler opprette en pull request med det nye begrepet.
+        Du trenger ikke kjenne til Git — alt skjer automatisk.

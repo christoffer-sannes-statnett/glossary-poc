@@ -29,21 +29,21 @@
     },
     "description_no": {
       "type": "string",
-      "description": "Human-readable definition in Norwegian Bokmål. Optional for self-explanatory terms.",
+      "description": "(optional) Human-readable definition in Norwegian Bokmål.",
       "minLength": 5
     },
     "description_en": {
       "type": "string",
-      "description": "Human-readable definition in English. Optional.",
+      "description": "(optional) Human-readable definition in English.",
       "minLength": 5
     },
     "status": {
       "type": "string",
-      "description": "Lifecycle status of the term.",
+      "description": "(optional) Lifecycle status. Defaults to 'active'; inferred as 'deprecated' if replaces is set.",
       "enum": ["active", "deprecated", "draft"]
     },
     "replaces": {
-      "description": "Slug of the predecessor term if this term supersedes another, otherwise null.",
+      "description": "(optional) Slug of the predecessor term if this term supersedes another, otherwise null.",
       "oneOf": [
         { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
         { "type": "null" }

@@ -44,11 +44,11 @@ jobs:
               return val if val and val != "_No response_" else ""
 
           slug           = field("Slug").upper().replace(" ", "_")
-          en             = field("Engelsk navn")
-          no             = field("Bokmål")
-          nn             = field("Nynorsk")
+          en             = field("Engelsk navn") or field("English label")
+          no             = field("Bokmål") or field("Norwegian Bokmål label")
+          nn             = field("Nynorsk") or field("Norwegian Nynorsk label")
           description_no = field("Beskrivelse (norsk bokmål)")
-          description_en = field("Beskrivelse (engelsk)")
+          description_en = field("Beskrivelse (engelsk)") or field("Description (English)")
           status         = field("Status") or "draft"
 
           if not slug or not en or not no or not nn:

@@ -89,20 +89,33 @@
     .desc { max-width: 400px; }
     .desc-en { display: block; margin-top: 3px; font-size: 12px; color: #888; font-style: italic; }
 
-    .badge {
+    .view-toggle { display: flex; gap: 0; }
+    .view-btn {
+      padding: 0.42rem 0.85rem;
+      border: 1px solid #ccc;
+      background: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .view-btn:first-child { border-radius: 4px 0 0 4px; }
+    .view-btn:last-child  { border-radius: 0 4px 4px 0; border-left: none; }
+    .view-btn.active { background: #0066cc; color: #fff; border-color: #0066cc; }
+    .view-btn:not(.active):hover { background: #f0f0f0; }
+
+    .parent-pill {
       display: inline-block;
-      padding: 2px 7px;
+      background: #e8f0fe;
+      color: #1a56db;
       border-radius: 3px;
       font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .03em;
+      font-family: monospace;
+      padding: 1px 5px;
+      margin: 1px 2px 1px 0;
     }
-    .badge.active     { background: #d4edda; color: #155724; }
-    .badge.deprecated { background: #f8d7da; color: #721c24; }
-    .badge.draft      { background: #fff3cd; color: #856404; }
 
     tr.hidden { display: none; }
+    tr[data-status="deprecated"] td { opacity: 0.6; }
   </style>
 </head>
 <body>
@@ -110,12 +123,10 @@
 
   <div class="controls">
     <input type="search" id="q" placeholder="Filtrer begreper…" autocomplete="off" />
-    <select id="statusFilter">
-      <option value="">Alle statuser</option>
-      <option value="active">Aktiv</option>
-      <option value="draft">Utkast</option>
-      <option value="deprecated">Utgått</option>
-    </select>
+    <div class="view-toggle">
+      <button id="btn-flat" class="view-btn active">Tabell</button>
+      <button id="btn-hierarchy" class="view-btn">Hierarki</button>
+    </div>
     <span class="count" id="count"></span>
   </div>
 
@@ -127,7 +138,7 @@
         <th data-col="2">Nynorsk</th>
         <th data-col="3">English</th>
         <th>Beskrivelse</th>
-        <th data-col="5">Status</th>
+        <th class="th-parents">Kategori</th>
       </tr>
     </thead>
     <tbody id="tbody">
@@ -138,33 +149,34 @@
   <script>
     const tbody = document.getElementById('tbody');
     const qInput = document.getElementById('q');
-    const statusFilter = document.getElementById('statusFilter');
     const countEl = document.getElementById('count');
 
+    let currentView = 'flat';
     let sortCol = null;
     let sortAsc = true;
+    const originalOrder = [];
+
+    function updateCount(n) {
+      countEl.textContent = n + ' begrep' + (n !== 1 ? 'er' : '');
+    }
+
+    // --- FLAT VIEW ---
 
     function filter() {
       const q = qInput.value.toLowerCase().trim();
-      const status = statusFilter.value;
       let visible = 0;
       for (const row of tbody.rows) {
-        const text = row.textContent.toLowerCase();
-        const rowStatus = row.dataset.status;
-        const match = (!q || text.includes(q)) && (!status || rowStatus === status);
+        const match = !q || row.textContent.toLowerCase().includes(q);
         row.classList.toggle('hidden', !match);
+        row.cells[0].style.paddingLeft = '';
         if (match) visible++;
       }
-      countEl.textContent = visible + ' begrep' + (visible !== 1 ? 'er' : '');
+      updateCount(visible);
     }
 
     function sort(col) {
-      if (sortCol === col) {
-        sortAsc = !sortAsc;
-      } else {
-        sortCol = col;
-        sortAsc = true;
-      }
+      if (sortCol === col) sortAsc = !sortAsc;
+      else { sortCol = col; sortAsc = true; }
       const rows = Array.from(tbody.rows);
       rows.sort((a, b) => {
         const av = a.cells[col]?.textContent.trim().toLowerCase() ?? '';
@@ -177,12 +189,79 @@
       filter();
     }
 
+    // --- HIERARCHY VIEW ---
+
+    function buildAdjacency() {
+      const allRows = Array.from(tbody.querySelectorAll('tr'));
+      const bySlug = {};
+      for (const row of allRows) bySlug[row.dataset.slug] = row;
+      const childrenOf = {};
+      for (const row of allRows) childrenOf[row.dataset.slug] = [];
+      const roots = [];
+      for (const row of allRows) {
+        const parents = row.dataset.parents ? row.dataset.parents.split(',').filter(Boolean) : [];
+        const primary = parents[0];
+        if (primary && bySlug[primary]) childrenOf[primary].push(row);
+        else roots.push(row);
+      }
+      return { roots, childrenOf };
+    }
+
+    function anyDescendantMatches(row, q, childrenOf) {
+      if (!q || row.textContent.toLowerCase().includes(q)) return true;
+      return (childrenOf[row.dataset.slug] || []).some(c => anyDescendantMatches(c, q, childrenOf));
+    }
+
+    function renderHierarchy() {
+      const q = qInput.value.toLowerCase().trim();
+      const { roots, childrenOf } = buildAdjacency();
+      let visible = 0;
+      function appendLevel(rows, depth) {
+        for (const row of rows) {
+          const show = anyDescendantMatches(row, q, childrenOf);
+          row.classList.toggle('hidden', !show);
+          if (show) visible++;
+          row.cells[0].style.paddingLeft = `${0.9 + depth * 1.5}rem`;
+          tbody.appendChild(row);
+          appendLevel(childrenOf[row.dataset.slug] || [], depth + 1);
+        }
+      }
+      appendLevel(roots, 0);
+      updateCount(visible);
+    }
+
+    // --- VIEW SWITCHING ---
+
+    function switchView(view) {
+      currentView = view;
+      document.getElementById('btn-flat').classList.toggle('active', view === 'flat');
+      document.getElementById('btn-hierarchy').classList.toggle('active', view === 'hierarchy');
+      if (view === 'flat') {
+        originalOrder.forEach(r => tbody.appendChild(r));
+        document.querySelectorAll('thead th').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+        sortCol = null;
+        filter();
+      } else {
+        renderHierarchy();
+      }
+    }
+
     document.querySelectorAll('thead th[data-col]').forEach(th => {
-      th.addEventListener('click', () => sort(parseInt(th.dataset.col)));
+      th.addEventListener('click', () => {
+        if (currentView === 'hierarchy') return;
+        sort(parseInt(th.dataset.col));
+      });
     });
 
-    qInput.addEventListener('input', filter);
-    statusFilter.addEventListener('change', filter);
+    qInput.addEventListener('input', () => {
+      if (currentView === 'flat') filter();
+      else renderHierarchy();
+    });
+
+    document.getElementById('btn-flat').addEventListener('click', () => switchView('flat'));
+    document.getElementById('btn-hierarchy').addEventListener('click', () => switchView('hierarchy'));
+
+    tbody.querySelectorAll('tr').forEach(r => originalOrder.push(r));
     filter();
   </script>
 </body>

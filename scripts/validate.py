@@ -22,6 +22,7 @@ def main() -> None:
 
     errors = []
     slugs_seen = set()
+    terms_data: list[tuple[str, dict]] = []
 
     for path in sorted(TERMS_DIR.glob("*.yml")):
         with path.open() as f:
@@ -43,6 +44,15 @@ def main() -> None:
             continue
 
         slugs_seen.add(slug)
+        terms_data.append((path.name, data))
+
+    # Second pass: validate parent slugs exist and no self-references
+    for filename, data in terms_data:
+        for parent in data.get("parents", []):
+            if parent == data["slug"]:
+                errors.append(f"{filename}: slug cannot list itself as a parent")
+            elif parent not in slugs_seen:
+                errors.append(f"{filename}: parent slug '{parent}' does not exist")
 
     if errors:
         print("Validation failed:", file=sys.stderr)

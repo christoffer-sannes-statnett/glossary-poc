@@ -60,14 +60,30 @@ The pipeline publishes machine-readable JSON on every merge to `main`. Use these
 | [`/no.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/no.json) | Flat `slug → Bokmål label` map |
 | [`/nn.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/nn.json) | Flat `slug → Nynorsk label` map |
 | [`/en.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/en.json) | Flat `slug → English label` map |
+| [`/children.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/children.json) | Reverse index: `parent slug → [child slugs]` |
 
 **Runtime fetch** — always reflects the current glossary:
 ```js
 const terms = await fetch('https://christoffer-sannes-statnett.github.io/glossary-poc/terms.json')
   .then(r => r.json())
 
+// Look up a term
 const mp = terms.find(t => t.slug === 'MP')
 // { slug: 'MP', no: 'Målepunkt', en: 'Metering Point', ... }
+
+// List parents of a term
+mp.parents  // e.g. ['METERING']
+
+// List children of a parent (client-side filter)
+terms.filter(t => (t.parents ?? []).includes('PRODUCTION_TYPE'))
+```
+
+**Children index** — pre-built reverse lookup, no client-side filtering needed:
+```js
+const children = await fetch('https://christoffer-sannes-statnett.github.io/glossary-poc/children.json')
+  .then(r => r.json())
+
+children['PRODUCTION_TYPE']  // ['WIND_ONSHORE', 'WIND_OFFSHORE', 'SOLAR', ...]
 ```
 
 **Locale map** — useful for dropdown labels, enum display names, column headers:

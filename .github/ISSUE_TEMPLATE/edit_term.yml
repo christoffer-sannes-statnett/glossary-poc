@@ -45,6 +45,15 @@ body:
       label: Description in English (leave blank to keep current)
       placeholder: A short, human-readable definition of the term.
 
+  - type: input
+    id: parents
+    attributes:
+      label: Overordnede begrep (la stå tomt for å beholde nåværende)
+      description: >
+        Kommaseparert liste over overordnede begreper (f.eks. PRODUCTION_TYPE, WIND).
+        Skriv inn for å erstatte nåværende liste helt.
+      placeholder: OVERORDNET_BEGREP, ANNET_BEGREP
+
   - type: markdown
     attributes:
       value: |

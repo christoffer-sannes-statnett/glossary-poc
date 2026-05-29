@@ -74,6 +74,12 @@ jobs:
                   data[key] = val
                   changed.append(key)
 
+          parents_raw = field("Overordnede begrep (la stå tomt for å beholde nåværende)")
+          if parents_raw:
+              parents = [p.strip().upper() for p in parents_raw.split(",") if p.strip()]
+              data["parents"] = parents
+              changed.append("parents")
+
           if not changed:
               print("No fields to update — all inputs were blank.", file=sys.stderr)
               sys.exit(1)

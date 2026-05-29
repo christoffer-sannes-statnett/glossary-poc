@@ -49,7 +49,8 @@ jobs:
           nn             = field("Nynorsk") or field("Norwegian Nynorsk label")
           description_no = field("Beskrivelse (norsk bokmål)")
           description_en = field("Beskrivelse (engelsk)") or field("Description (English)")
-          status         = field("Status") or "draft"
+          parents_raw    = field("Overordnede begrep (valgfritt)")
+          parents        = [p.strip().upper() for p in parents_raw.split(",") if p.strip()] if parents_raw else []
 
           if not slug or not en or not no or not nn:
               print("ERROR: slug, English label, Bokmål, and Nynorsk are required.", file=sys.stderr)
@@ -68,15 +69,18 @@ jobs:
           lines = [
               "# yaml-language-server: $schema=../schema/term.schema.json",
               f"slug: {slug}",
-              f"en: {en}",
               f'"no": {no}',
               f"nn: {nn}",
+              f"en: {en}",
           ]
           if description_no:
               lines += ["description_no: >", f"  {description_no}"]
           if description_en:
               lines += ["description_en: >", f"  {description_en}"]
-          lines += [f"status: {status}", "replaces: null"]
+          if parents:
+              lines.append("parents:")
+              for p in parents:
+                  lines.append(f"  - {p}")
           content = "\n".join(lines) + "\n"
 
           with open(term_path, "w") as f:

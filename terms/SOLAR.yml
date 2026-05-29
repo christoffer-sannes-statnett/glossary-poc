@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: SOLAR
+"no": Sol
+nn: Sol
+en: Solar
+description_no: >
+  En enhet som konverterer solenergi til elektrisitet med uspesifisert utstyr/metode
+description_en: >
+  Unit in which solar energy is converted to electricity with unspecified equipment/devices
+parents:
+  - PROD_GROUP

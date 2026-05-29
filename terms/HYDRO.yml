@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: HYDRO
+"no": Vann
+nn: Vass
+en: Hydro
+description_no: >
+  En enhet som konverterer vannkraft til elektrisitet med uspesifisert utstyr/metode
+description_en: >
+  Unit in which water energy is converted to electricity with unspecified equipment/devices.
+parents:
+  - PROD_GROUP

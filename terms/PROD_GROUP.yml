@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: PROD_GROUP
+"no": Produksjonsgruppe
+nn: Produksjonsgruppe
+en: Production Group
+description_no: >
+  Hvilken overordnet gruppe en produksjonsenhet tilhører
+description_en: >
+  The group a production unit belongs to

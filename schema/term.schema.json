@@ -48,6 +48,16 @@
         { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
         { "type": "null" }
       ]
+    },
+    "parents": {
+      "description": "(optional) Slugs of broader/parent terms — used to group this term in the hierarchy view.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
     }
   }
 }

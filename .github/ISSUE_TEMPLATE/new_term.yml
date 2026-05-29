@@ -53,16 +53,14 @@ body:
       description: Valgfri forklaring på engelsk.
       placeholder: Describe what this term means in a business context.
 
-  - type: dropdown
-    id: status
+  - type: input
+    id: parents
     attributes:
-      label: Status
-      options:
-        - draft
-        - active
-      default: 0
-    validations:
-      required: true
+      label: Overordnede begrep (valgfritt)
+      description: >
+        Kommaseparert liste over overordnede begreper (f.eks. PRODUCTION_TYPE, WIND).
+        La stå tomt hvis begrepet ikke tilhører noen gruppe.
+      placeholder: OVERORDNET_BEGREP, ANNET_BEGREP
 
   - type: markdown
     attributes:

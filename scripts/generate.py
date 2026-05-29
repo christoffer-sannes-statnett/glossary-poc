@@ -56,6 +56,14 @@ def load_terms() -> list[dict]:
 
         terms.append(data)
 
+    # Second pass: validate parent slugs exist and no self-references
+    for term in terms:
+        for parent in term.get("parents", []):
+            if parent == term["slug"]:
+                errors.append(f"{term['slug']}.yml: slug cannot list itself as a parent")
+            elif parent not in slugs_seen:
+                errors.append(f"{term['slug']}.yml: parent slug '{parent}' does not exist")
+
     if errors:
         print("Validation errors:", file=sys.stderr)
         for err in errors:
@@ -87,22 +95,33 @@ def emit_json(terms: list[dict]) -> None:
             json.dumps(locale, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
+    # Reverse index: parent slug → list of child slugs
+    children: dict[str, list[str]] = {}
+    for t in cleaned:
+        for parent in t.get("parents") or []:
+            children.setdefault(parent, []).append(t["slug"])
+    (DIST_DIR / "children.json").write_text(
+        json.dumps(children, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
 
 def emit_html(terms: list[dict]) -> None:
     template_path = Path(__file__).parent / "template.html"
     template = template_path.read_text(encoding="utf-8")
-
-    status_badge = {
-        "active": '<span class="badge active">aktiv</span>',
-        "deprecated": '<span class="badge deprecated">utgått</span>',
-        "draft": '<span class="badge draft">utkast</span>',
-    }
 
     rows = []
     for t in terms:
         replaces_cell = ""
         if t.get("replaces"):
             replaces_cell = f'<span class="replaces">→ {t["replaces"]}</span>'
+
+        parents_attr = ",".join(t.get("parents") or [])
+
+        parents_pills = ""
+        if t.get("parents"):
+            parents_pills = "".join(
+                f'<span class="parent-pill">{p}</span>' for p in t["parents"]
+            )
 
         desc_no = (t.get("description_no") or "").strip().replace("\n", " ")
         desc_en = (t.get("description_en") or "").strip().replace("\n", " ")
@@ -111,13 +130,13 @@ def emit_html(terms: list[dict]) -> None:
             desc_cell += f'<span class="desc-en">{desc_en}</span>'
 
         rows.append(
-            f'    <tr data-status="{t["status"]}">\n'
+            f'    <tr data-status="{t["status"]}" data-slug="{t["slug"]}" data-parents="{parents_attr}">\n'
             f'      <td class="slug">{t["slug"]}{replaces_cell}</td>\n'
             f'      <td>{t["no"]}</td>\n'
             f'      <td>{t["nn"]}</td>\n'
             f'      <td>{t["en"]}</td>\n'
             f'      <td class="desc">{desc_cell}</td>\n'
-            f'      <td>{status_badge.get(t["status"], t["status"])}</td>\n'
+            f'      <td class="parents-cell">{parents_pills}</td>\n'
             f'    </tr>'
         )
 

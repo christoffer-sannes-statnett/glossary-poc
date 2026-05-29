@@ -8,4 +8,4 @@ description_no: >
 description_en: >
   Unit in which water energy is converted to electricity with unspecified equipment/devices.
 parents:
-  - PRODUCTION_GROUP
+  - PROD_GROUP

@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: EAP
+"no": Estimert årlig produksjon
+nn: Estimert årlig produksjon
+en: Estimated annual production
+description_no: >
+  ...
+description_en: >
+  ...
+parents:
+  - EAV

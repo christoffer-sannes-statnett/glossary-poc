@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../schema/term.schema.json
+slug: EAC
+"no": Estimert årlig forbruk
+nn: estimert årlig forbruk
+en: Estimated Annual Consumption
+description_no: >
+  en norsk beskrivelse
+description_en: >
+  en engelsk beskrivelse
+parents:
+  - EAV

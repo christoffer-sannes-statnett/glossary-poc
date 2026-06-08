@@ -1,0 +1,28 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix elhub-ont: <https://glossary.elhub.no/ontology/> .
+@prefix elhub-scheme: <https://glossary.elhub.no/scheme/> .
+
+elhub-ont:domain
+  a owl:Ontology ;
+  dct:title "Elhub Glossary Domain Ontology (Starter)"@en ;
+  dct:title "Elhub ordliste domeneontologi (starter)"@no ;
+  rdfs:comment "Starter scaffold for future domain modeling. Keep this intentionally small and stable."@en .
+
+elhub-ont:BusinessTerm
+  a owl:Class ;
+  rdfs:label "Business term"@en ;
+  rdfs:label "Forretningsbegrep"@no ;
+  rdfs:subClassOf skos:Concept .
+
+elhub-ont:belongsToScheme
+  a owl:ObjectProperty ;
+  rdfs:label "belongs to concept scheme"@en ;
+  rdfs:domain elhub-ont:BusinessTerm ;
+  rdfs:range skos:ConceptScheme .
+
+elhub-scheme:business-glossary
+  a skos:ConceptScheme ;
+  rdfs:label "Elhub Business Glossary scheme"@en .

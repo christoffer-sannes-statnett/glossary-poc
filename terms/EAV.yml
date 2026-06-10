@@ -1,9 +1,0 @@
-# yaml-language-server: $schema=../schema/term.schema.json
-slug: EAV
-"no": Estimert årlig volum
-nn: Estimert årlig volum
-en: Estimated annual volume
-description_no: >
-  Samlebetegnelse for estimert årlig forbruk og -produksjon
-description_en: >
-  Collective term for estimated annual consumption and -production

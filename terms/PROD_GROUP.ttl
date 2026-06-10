@@ -1,0 +1,13 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:PROD_GROUP a skos:Concept ;
+    skos:notation "PROD_GROUP" ;
+    skos:prefLabel "Production Group"@en,
+        "Produksjonsgruppe"@no,
+        "Produksjonsgruppe"@nn ;
+    skos:definition "The group a production unit belongs to"@en,
+        "Hvilken overordnet gruppe en produksjonsenhet tilhører"@no ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

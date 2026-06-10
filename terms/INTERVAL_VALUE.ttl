@@ -1,0 +1,13 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:INTERVAL_VALUE a skos:Concept ;
+    skos:notation "INTERVAL_VALUE" ;
+    skos:prefLabel "Interval Value"@en,
+        "Intervallverdi"@no,
+        "Intervallverdi"@nn ;
+    skos:definition "Common term for intervals"@en,
+        "Fellesbetegnelsen for Intervallstand og Intervallvolum."@no ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

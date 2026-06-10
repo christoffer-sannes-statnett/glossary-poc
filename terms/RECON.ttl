@@ -1,0 +1,12 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:RECON a skos:Concept ;
+    skos:notation "RECON" ;
+    skos:prefLabel "Reconciliation"@en,
+        "Avviksoppgjør"@no,
+        "Avviksoppgjør"@nn ;
+    skos:definition "Oppgjør mellom aktørene for alle endringer som blir registrert etter grunnlaget for balanseavregningen er låst (D+5). Det er Elhub som regner ut og fakturerer dette oppgjøret."@no ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

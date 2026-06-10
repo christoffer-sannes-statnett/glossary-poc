@@ -1,0 +1,11 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:SETTLEMENT_TYPE a skos:Concept ;
+    skos:notation "SETTLEMENT_TYPE" ;
+    skos:prefLabel "Settlement Type"@en,
+        "Avregningsform"@no,
+        "Avregningsform"@nn ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

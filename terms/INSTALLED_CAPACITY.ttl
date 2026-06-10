@@ -1,0 +1,12 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:INSTALLED_CAPACITY a skos:Concept ;
+    skos:notation "INSTALLED_CAPACITY" ;
+    skos:prefLabel "Installed Capacity"@en,
+        "Installert effekt"@no,
+        "Installert effekt"@nn ;
+    skos:definition "Beskriver hvor mye energi som maksimalt kan produseres på et produksjonsanlegg. Verdien gjelder hva som maksimalt kan produseres i anlegget, ikke hva som maksimalt kan leveres ut på nettet. I Elhub er verdien gitt i kW."@no ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

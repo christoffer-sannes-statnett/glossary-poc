@@ -1,0 +1,12 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:MP a skos:Concept ;
+    skos:notation "MP" ;
+    skos:prefLabel "Metering Point"@en,
+        "Målepunkt"@no,
+        "Målepunkt"@nn ;
+    skos:definition "Et punkt der energiprodukter måles. Kan være av type produksjon, forbruk, kombinert eller utveksling. Målepunkt kan også være virtuelle eller tekniske målepunkt."@no ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

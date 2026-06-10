@@ -1,0 +1,13 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:EAP a skos:Concept ;
+    skos:notation "EAP" ;
+    skos:prefLabel "Estimated annual production"@en,
+        "Estimert årlig produksjon"@no ;
+    skos:definition "English description of EAP"@en,
+        "Norsk beskrivelse for EAP"@no ;
+    skos:broader elhub:EAV ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

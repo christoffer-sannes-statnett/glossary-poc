@@ -1,0 +1,12 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:QUALITY_CODE a skos:Concept ;
+    skos:notation "QUALITY_CODE" ;
+    skos:prefLabel "Quality Code"@en,
+        "Kvalitet"@no,
+        "Kvalitet"@nn ;
+    skos:definition "En statuskode som kan settes på en måleverdi. Gyldige koder er: 21 Midlertidig, 46 Ingen verdi, 56 Estimert, 58 Tilbaketrukket, 81 Endelig estimert, 127 Målt."@no ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

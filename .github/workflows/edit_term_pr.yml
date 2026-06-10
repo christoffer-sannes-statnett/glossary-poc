@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install PyYAML
-        run: pip install pyyaml -q
+        run: pip install rdflib -q
 
       - name: Parse issue form and update term file
         env:
@@ -36,7 +36,9 @@ jobs:
           import os, re, sys
           import subprocess
 
-          import yaml
+          import rdflib
+          from rdflib import Graph, Namespace, URIRef, Literal, RDF
+          from rdflib.namespace import SKOS
 
           body     = os.environ["ISSUE_BODY"]
           issue_n  = os.environ["ISSUE_NUMBER"]
@@ -52,42 +54,67 @@ jobs:
               print("ERROR: slug is required.", file=sys.stderr)
               sys.exit(1)
 
-          term_path = f"terms/{slug}.yml"
+          term_path = f"terms/{slug}.ttl"
           if not os.path.exists(term_path):
               print(f"ERROR: {term_path} does not exist. Check the slug.", file=sys.stderr)
               sys.exit(1)
 
-          with open(term_path) as f:
-              data = yaml.safe_load(f)
+          ELHUB = Namespace("https://glossary.elhub.no/concept/")
+          ADMS  = Namespace("http://www.w3.org/ns/adms#")
+          concept = ELHUB[slug]
+
+          g = Graph()
+          g.parse(term_path, format="turtle")
 
           updates = {
-              "en":             field("Engelsk navn (la stå tomt for å beholde nåværende)"),
-              "no":             field("Bokmål (la stå tomt for å beholde nåværende)"),
-              "nn":             field("Nynorsk (la stå tomt for å beholde nåværende)"),
-              "description_no": field("Beskrivelse på norsk (la stå tomt for å beholde nåværende)"),
-              "description_en": field("Description in English (leave blank to keep current)"),
+              "en": field("Engelsk navn (la stå tomt for å beholde nåværende)"),
+              "no": field("Bokmål (la stå tomt for å beholde nåværende)"),
+              "nn": field("Nynorsk (la stå tomt for å beholde nåværende)"),
           }
+          desc_no = field("Beskrivelse på norsk (la stå tomt for å beholde nåværende)")
+          desc_en = field("Description in English (leave blank to keep current)")
+          parents_raw = field("Overordnede begrep (la stå tomt for å beholde nåværende)")
 
           changed = []
-          for key, val in updates.items():
-              if val:
-                  data[key] = val
-                  changed.append(key)
 
-          parents_raw = field("Overordnede begrep (la stå tomt for å beholde nåværende)")
+          # Update prefLabels
+          for lang, val in updates.items():
+              if val:
+                  # Remove existing label for this language
+                  for obj in list(g.objects(concept, SKOS.prefLabel)):
+                      if isinstance(obj, Literal) and obj.language == lang:
+                          g.remove((concept, SKOS.prefLabel, obj))
+                  g.add((concept, SKOS.prefLabel, Literal(val, lang=lang)))
+                  changed.append(f"prefLabel@{lang}")
+
+          # Update definitions
+          if desc_no:
+              for obj in list(g.objects(concept, SKOS.definition)):
+                  if isinstance(obj, Literal) and obj.language == "no":
+                      g.remove((concept, SKOS.definition, obj))
+              g.add((concept, SKOS.definition, Literal(desc_no, lang="no")))
+              changed.append("definition@no")
+          if desc_en:
+              for obj in list(g.objects(concept, SKOS.definition)):
+                  if isinstance(obj, Literal) and obj.language == "en":
+                      g.remove((concept, SKOS.definition, obj))
+              g.add((concept, SKOS.definition, Literal(desc_en, lang="en")))
+              changed.append("definition@en")
+
+          # Update parents (skos:broader)
           if parents_raw:
               parents = [p.strip().upper() for p in parents_raw.split(",") if p.strip()]
-              data["parents"] = parents
-              changed.append("parents")
+              for obj in list(g.objects(concept, SKOS.broader)):
+                  g.remove((concept, SKOS.broader, obj))
+              for parent in parents:
+                  g.add((concept, SKOS.broader, ELHUB[parent]))
+              changed.append("broader")
 
           if not changed:
               print("No fields to update — all inputs were blank.", file=sys.stderr)
               sys.exit(1)
 
-          # Preserve the $schema comment line at the top
-          with open(term_path, "w") as f:
-              f.write("# yaml-language-server: $schema=../schema/term.schema.json\n")
-              yaml.dump(data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+          g.serialize(destination=term_path, format="turtle")
 
           branch = f"edit-term/{slug.lower()}-issue-{issue_n}"
           subprocess.run(["git", "config", "user.name",  "github-actions[bot]"], check=True)

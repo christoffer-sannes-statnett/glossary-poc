@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install PyYAML
-        run: pip install pyyaml -q
+        run: pip install rdflib -q
 
       - name: Parse issue form and deprecate term
         env:
@@ -36,7 +36,9 @@ jobs:
           import os, re, sys
           import subprocess
 
-          import yaml
+          import rdflib
+          from rdflib import Graph, Namespace, Literal
+          from rdflib.namespace import SKOS, OWL
 
           body    = os.environ["ISSUE_BODY"]
           issue_n = os.environ["ISSUE_NUMBER"]
@@ -52,25 +54,33 @@ jobs:
               print("ERROR: slug is required.", file=sys.stderr)
               sys.exit(1)
 
-          term_path = f"terms/{slug}.yml"
+          term_path = f"terms/{slug}.ttl"
           if not os.path.exists(term_path):
               print(f"ERROR: {term_path} does not exist. Check the slug.", file=sys.stderr)
               sys.exit(1)
 
-          with open(term_path) as f:
-              data = yaml.safe_load(f)
+          ELHUB = Namespace("https://glossary.elhub.no/concept/")
+          ADMS  = Namespace("http://www.w3.org/ns/adms#")
+          concept = ELHUB[slug]
 
-          if data.get("status") == "deprecated":
+          g = Graph()
+          g.parse(term_path, format="turtle")
+
+          current_status = str(next(g.objects(concept, ADMS.status), "active"))
+          if current_status == "deprecated":
               print(f"WARNING: {slug} is already deprecated.", file=sys.stderr)
 
-          data["status"] = "deprecated"
+          # Set adms:status to deprecated
+          g.remove((concept, ADMS.status, None))
+          g.add((concept, ADMS.status, Literal("deprecated")))
+
           replaces_slug = field("Erstattes av (valgfritt)").upper().replace(" ", "_")
           if replaces_slug:
-              data["replaces"] = replaces_slug
+              # Use owl:sameAs pointing to the replacing concept
+              g.remove((concept, OWL.sameAs, None))
+              g.add((concept, OWL.sameAs, ELHUB[replaces_slug]))
 
-          with open(term_path, "w") as f:
-              f.write("# yaml-language-server: $schema=../schema/term.schema.json\n")
-              yaml.dump(data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+          g.serialize(destination=term_path, format="turtle")
 
           branch = f"deprecate-term/{slug.lower()}-issue-{issue_n}"
           subprocess.run(["git", "config", "user.name",  "github-actions[bot]"], check=True)

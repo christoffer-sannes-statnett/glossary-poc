@@ -1,0 +1,14 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:HYDRO a skos:Concept ;
+    skos:notation "HYDRO" ;
+    skos:prefLabel "Hydro"@en,
+        "Vann"@no,
+        "Vass"@nn ;
+    skos:definition "Unit in which water energy is converted to electricity with unspecified equipment/devices."@en,
+        "En enhet som konverterer vannkraft til elektrisitet med uspesifisert utstyr/metode"@no ;
+    skos:broader elhub:PROD_GROUP ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

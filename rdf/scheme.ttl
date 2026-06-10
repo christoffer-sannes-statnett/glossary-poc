@@ -1,0 +1,9 @@
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<https://glossary.elhub.no/scheme/business-glossary>
+    a skos:ConceptScheme ;
+    skos:prefLabel "Elhub Business Glossary"@en,
+        "Elhub forretningsordliste"@no,
+        "Elhub forretningsordliste"@nn ;
+    dct:description "Business glossary for Elhub — authoritative definitions of terms used across the Norwegian energy data hub."@en .

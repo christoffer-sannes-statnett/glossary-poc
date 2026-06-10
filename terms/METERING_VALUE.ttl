@@ -1,0 +1,12 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:METERING_VALUE a skos:Concept ;
+    skos:notation "METERING_VALUE" ;
+    skos:prefLabel "Metering Value"@en,
+        "Måleverdi"@no,
+        "Måleverdi"@nn ;
+    skos:definition "En Intervallverdi eller Målerstand. Kan være en målt eller estimert verdi. Fellesbetegnelse på alle verdier som representerer et forbruk eller produksjon på et Målepunkt eller på et aggregert nivå."@no ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

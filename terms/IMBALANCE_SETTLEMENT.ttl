@@ -1,0 +1,12 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:IMBALANCE_SETTLEMENT a skos:Concept ;
+    skos:notation "IMBALANCE_SETTLEMENT" ;
+    skos:prefLabel "Imbalance Settlement"@en,
+        "Balanseavregning"@no,
+        "Balanseavregning"@nn ;
+    skos:definition "Balanseavregningen gjøres ikke i Elhub men i eSett, og er avregningen av ubalanser i forhold til anmelding av kraft. Dette gjøres basert på Balanseavregningsgrunnlag som regnes ut i Elhub."@no ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

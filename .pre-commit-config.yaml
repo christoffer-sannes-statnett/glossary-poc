@@ -17,6 +17,6 @@ repos:
         name: Validate glossary terms
         entry: python scripts/validate.py
         language: python
-        additional_dependencies: ["pyyaml", "jsonschema"]
-        files: ^terms/.*\.yml$
+        additional_dependencies: ["rdflib"]
+        files: ^terms/.*\.ttl$
         pass_filenames: false

@@ -79,20 +79,18 @@ jobs:
               f'    skos:notation "{slug}" ;',
           ]
 
-          # prefLabels
-          pref_labels = [f'        "{en}"@en', f'        "{no}"@no']
-          if nn and nn != no:
-              pref_labels.append(f'        "{nn}"@nn')
-          lines.append('    skos:prefLabel ' + ',\n'.join(pref_labels) + ' ;')
+          # prefLabels — @nn always required, even when identical to @no
+          pref_labels = [f'"{en}"@en', f'"{no}"@no', f'"{nn or no}"@nn']
+          lines.append('    skos:prefLabel ' + ',\n        '.join(pref_labels) + ' ;')
 
           # definitions
           defs = []
           if description_no:
-              defs.append(f'        "{description_no}"@no')
+              defs.append(f'"{description_no}"@no')
           if description_en:
-              defs.append(f'        "{description_en}"@en')
+              defs.append(f'"{description_en}"@en')
           if defs:
-              lines.append('    skos:definition ' + ',\n'.join(defs) + ' ;')
+              lines.append('    skos:definition ' + ',\n        '.join(defs) + ' ;')
 
           # broader
           for parent in parents:

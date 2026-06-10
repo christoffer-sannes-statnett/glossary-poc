@@ -8,7 +8,7 @@ import re
 import sys
 from pathlib import Path
 
-from rdflib import Graph, Namespace, RDF, URIRef
+from rdflib import Graph, Literal, Namespace, RDF, URIRef
 from rdflib.namespace import SKOS
 
 ROOT = Path(__file__).parent.parent
@@ -16,7 +16,6 @@ TERMS_DIR = ROOT / "terms"
 SCHEME_IRI = URIRef("https://glossary.elhub.no/scheme/business-glossary")
 ELHUB = Namespace("https://glossary.elhub.no/concept/")
 SCREAMING_SNAKE = re.compile(r"^[A-Z][A-Z0-9_]*$")
-ADMS = Namespace("http://www.w3.org/ns/adms#")
 
 
 def main() -> None:
@@ -73,9 +72,22 @@ def main() -> None:
             )
             continue
 
-        # required: at least @en and @no prefLabel
-        labels = {str(o.language): str(o) for o in g.objects(concept, SKOS.prefLabel)}
-        for lang in ("en", "no"):
+        # required: at least @en and @no prefLabel; no duplicate language tags allowed
+        labels: dict[str, str] = {}
+        for obj in g.objects(concept, SKOS.prefLabel):
+            if not isinstance(obj, Literal) or not obj.language:
+                errors.append(
+                    f"{path.name}: skos:prefLabel must be a language-tagged literal, got: {obj!r}"
+                )
+                continue
+            lang = str(obj.language)
+            if lang in labels:
+                errors.append(
+                    f"{path.name}: duplicate skos:prefLabel for language @{lang}"
+                )
+            else:
+                labels[lang] = str(obj)
+        for lang in ("en", "no", "nn"):
             if lang not in labels:
                 errors.append(f"{path.name}: missing skos:prefLabel @{lang}")
 
@@ -90,7 +102,8 @@ def main() -> None:
         concepts_seen.add(notation)
         parsed.append((path.name, g, concept, notation))
 
-    # Second pass: validate skos:broader targets exist and no self-references
+    # Build broader graph for cycle detection: notation → set of broader notations
+    broader_map: dict[str, set[str]] = {notation: set() for _, _, _, notation in parsed}
     for filename, g, concept, notation in parsed:
         for broader in g.objects(concept, SKOS.broader):
             broader_notation = str(broader).removeprefix(str(ELHUB))
@@ -100,6 +113,27 @@ def main() -> None:
                 errors.append(
                     f"{filename}: skos:broader target '{broader_notation}' does not exist"
                 )
+            else:
+                broader_map[notation].add(broader_notation)
+
+    # Second pass: cycle detection via DFS
+    def has_cycle(start: str, visited: set[str], path: set[str]) -> bool:
+        if start in path:
+            return True
+        if start in visited:
+            return False
+        visited.add(start)
+        path.add(start)
+        for parent in broader_map.get(start, set()):
+            if has_cycle(parent, visited, path):
+                return True
+        path.discard(start)
+        return False
+
+    visited: set[str] = set()
+    for notation in broader_map:
+        if has_cycle(notation, visited, set()):
+            errors.append(f"{notation}.ttl: skos:broader cycle detected")
 
     if errors:
         print("Validation failed:", file=sys.stderr)

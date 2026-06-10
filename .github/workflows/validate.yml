@@ -5,6 +5,8 @@ on:
     paths:
       - "terms/**"
       - "rdf/**"
+      - "scripts/**"
+      - ".pre-commit-config.yaml"
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

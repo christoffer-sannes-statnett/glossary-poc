@@ -21,8 +21,8 @@ If everything looks correct, do not leave any comments. Approve silently. Only c
 
 ### Norwegian labels (`skos:prefLabel @no`, `@nn`)
 - `@no` is Norwegian Bokmål, `@nn` is Norwegian Nynorsk
-- `@nn` is optional — omit it when it would be identical to `@no`
-- If `@nn` is present and differs from `@no`, verify it is genuine Nynorsk (not Bokmål with minor changes)
+- Both `@no` and `@nn` are required — a term is valid in both languages even when spelled identically
+- If `@nn` differs from `@no`, verify it is genuine Nynorsk (not Bokmål with minor changes)
 - Check spelling and grammar; domain terms should match official Norwegian energy sector terminology where possible
 
 ### English label (`skos:prefLabel @en`)
@@ -47,7 +47,6 @@ If everything looks correct, do not leave any comments. Approve silently. Only c
 
 ## What NOT to flag
 
-- Absent `@nn` label — it is intentionally optional when identical to `@no`
 - Absent `skos:definition` — optional for self-explanatory terms
 - Turtle formatting (blank lines, prefix order) — pre-commit handles this automatically
 - `skos:inScheme` pointing to `<https://glossary.elhub.no/scheme/business-glossary>` — required boilerplate, not a concern

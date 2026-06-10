@@ -25,7 +25,4 @@ elhub-ont:belongsToScheme
   rdfs:range skos:ConceptScheme .
 
 elhub-scheme:business-glossary
-  a skos:ConceptScheme ;
-  skos:prefLabel "Elhub Business Glossary scheme"@en,
-    "Elhub forretningsordliste"@no,
-    "Elhub forretningsordliste"@nn .
+  a skos:ConceptScheme .

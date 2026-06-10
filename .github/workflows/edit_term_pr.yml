@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install PyYAML
+      - name: Install rdflib
         run: pip install rdflib -q
 
       - name: Parse issue form and update term file

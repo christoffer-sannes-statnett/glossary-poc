@@ -9,18 +9,18 @@ generate.py — reads terms/*.ttl + rdf/scheme.ttl, validates, emits:
   dist/index.html          self-contained searchable HTML table
 """
 
+import html as html_module
+import json
 import sys
 from pathlib import Path
 
-from rdflib import Graph, Namespace, RDF, Literal, URIRef
-from rdflib.namespace import SKOS
-import json
+from rdflib import Graph, Literal, Namespace, RDF, URIRef
+from rdflib.namespace import OWL, SKOS
 
 ROOT = Path(__file__).parent.parent
 TERMS_DIR = ROOT / "terms"
 RDF_DIR = ROOT / "rdf"
 DIST_DIR = ROOT / "dist"
-SCHEME_IRI = URIRef("https://glossary.elhub.no/scheme/business-glossary")
 ELHUB = Namespace("https://glossary.elhub.no/concept/")
 ADMS = Namespace("http://www.w3.org/ns/adms#")
 
@@ -64,15 +64,14 @@ def load_terms(g: Graph) -> list[dict]:
         statuses = list(g.objects(concept, ADMS.status))
         status = str(statuses[0]) if statuses else "active"
 
-        replaces_list = list(g.objects(concept, SKOS.related))  # use skos:related for deprecated→replacement
         replaces = None
-        for obj in g.objects(concept, SKOS.exactMatch):  # convention: exactMatch for replaces
+        for obj in g.objects(concept, OWL.sameAs):
             replaces = str(obj).removeprefix(str(ELHUB))
 
         term = {
             "slug": notation,
             "no": labels.get("no", ""),
-            "nn": labels.get("nn", labels.get("no", "")),  # fall back to no if nn absent. okay or just leave the empty string?
+            "nn": labels.get("nn", labels.get("no", "")),  # fall back to @no when @nn is absent
             "en": labels.get("en", ""),
             "status": status,
         }
@@ -136,29 +135,36 @@ def emit_html(terms: list[dict]) -> None:
     )
 
     rows = []
+    html_escape = html_module.escape
     for t in terms:
+        slug   = html_escape(t["slug"])
+        no     = html_escape(t["no"])
+        nn     = html_escape(t["nn"])
+        en     = html_escape(t["en"])
+        status = html_escape(t["status"])
+
         replaces_cell = ""
         if t.get("replaces"):
-            replaces_cell = f'<span class="replaces">→ {t["replaces"]}</span>'
+            replaces_cell = f'<span class="replaces">→ {html_escape(t["replaces"])}</span>'
 
-        parents_attr = ",".join(t.get("parents") or [])
+        parents_attr = html_escape(",".join(t.get("parents") or []), quote=True)
 
         parents_pills = "".join(
-            f'<span class="parent-pill">{p}</span>' for p in (t.get("parents") or [])
+            f'<span class="parent-pill">{html_escape(p)}</span>' for p in (t.get("parents") or [])
         )
 
-        desc_no = (t.get("description_no") or "").strip().replace("\n", " ")
-        desc_en = (t.get("description_en") or "").strip().replace("\n", " ")
+        desc_no = html_escape((t.get("description_no") or "").strip().replace("\n", " "))
+        desc_en = html_escape((t.get("description_en") or "").strip().replace("\n", " "))
         desc_cell = desc_no
         if desc_en:
             desc_cell += f'<span class="desc-en">{desc_en}</span>'
 
         rows.append(
-            f'    <tr data-status="{t["status"]}" data-slug="{t["slug"]}" data-parents="{parents_attr}">\n'
-            f'      <td class="slug">{t["slug"]}{replaces_cell}</td>\n'
-            f'      <td>{t["no"]}</td>\n'
-            f'      <td>{t["nn"]}</td>\n'
-            f'      <td>{t["en"]}</td>\n'
+            f'    <tr data-status="{status}" data-slug="{slug}" data-parents="{parents_attr}">\n'
+            f'      <td class="slug">{slug}{replaces_cell}</td>\n'
+            f'      <td>{no}</td>\n'
+            f'      <td>{nn}</td>\n'
+            f'      <td>{en}</td>\n'
             f'      <td class="desc">{desc_cell}</td>\n'
             f'      <td class="parents-cell">{parents_pills}</td>\n'
             f'    </tr>'

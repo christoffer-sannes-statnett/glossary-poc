@@ -40,7 +40,7 @@ elhub:MY_TERM a skos:Concept ;
 **Rules:**
 - Filename stem must be `SCREAMING_SNAKE_CASE`, ASCII only (no Æ/Ø/Å)
 - `skos:notation` must match the filename stem exactly
-- `@no` (Bokmål) and `@en` labels are required; `@nn` (Nynorsk) is optional — omit it when identical to `@no`
+- `@no` (Bokmål) and `@en` and `@nn` (Nynorsk) labels are required — a term is valid in all three languages even when `@no` and `@nn` are spelled identically
 - Descriptions (`skos:definition`) are optional for self-explanatory terms
 - Hierarchy is expressed via `skos:broader` on the narrower term only
 - To deprecate, set `adms:status "deprecated"` and optionally add `owl:sameAs <replacement IRI>`

@@ -5,7 +5,8 @@
 elhub:EAP a skos:Concept ;
     skos:notation "EAP" ;
     skos:prefLabel "Estimated annual production"@en,
-        "Estimert årlig produksjon"@no ;
+        "Estimert årlig produksjon"@no,
+        "Estimert årlig produksjon"@nn ;
     skos:definition "English description of EAP"@en,
         "Norsk beskrivelse for EAP"@no ;
     skos:broader elhub:EAV ;

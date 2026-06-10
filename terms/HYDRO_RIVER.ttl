@@ -1,0 +1,14 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:HYDRO_RIVER a skos:Concept ;
+    skos:notation "HYDRO_RIVER" ;
+    skos:prefLabel "Hydro Run-of-river and Pondage"@en,
+        "Vannkraft elvekraft"@no,
+        "Vannkraft elvekraft"@nn ;
+    skos:definition "Vannkraft i elv uten reservoarer."@no,
+        "Unit in which moving water energy is converted to electricity using flowing water to generate electricity in the absence of a large dam and reservoirs."@en ;
+    skos:broader elhub:HYDRO ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .

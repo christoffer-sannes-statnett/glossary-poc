@@ -123,9 +123,12 @@ labels['MP']  // → "Målepunkt"
 ## How it works
 
 ```
-terms/*.yml  →  validate  →  dist/terms.json
-                              dist/{no,nn,en}.json   (locale maps)
-                              dist/index.html        (GitHub Pages)
+terms/*.ttl  ─┐
+rdf/*.ttl    ─┴─  validate  →  (CI passes)
+                  generate  →  dist/glossary.ttl      (merged Turtle graph)
+                               dist/terms.json
+                               dist/{no,nn,en}.json   (locale maps)
+                               dist/index.html        (GitHub Pages)
 ```
 
 CI runs on every PR (validate only) and on every merge to `main` (validate + publish).

@@ -20,9 +20,12 @@ elhub-ont:BusinessTerm
 elhub-ont:belongsToScheme
   a owl:ObjectProperty ;
   rdfs:label "belongs to concept scheme"@en ;
+  rdfs:subPropertyOf skos:inScheme ;
   rdfs:domain elhub-ont:BusinessTerm ;
   rdfs:range skos:ConceptScheme .
 
 elhub-scheme:business-glossary
   a skos:ConceptScheme ;
-  rdfs:label "Elhub Business Glossary scheme"@en .
+  skos:prefLabel "Elhub Business Glossary scheme"@en,
+    "Elhub forretningsordliste"@no,
+    "Elhub forretningsordliste"@nn .

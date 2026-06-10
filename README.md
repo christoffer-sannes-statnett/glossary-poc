@@ -2,7 +2,7 @@
 
 Single source of truth for business terms used across systems, teams, and languages (NO/NN/EN).
 
-Terms are maintained as YAML files in this repo. On every merge to `main`, the CI pipeline validates all terms and publishes a searchable HTML page to GitHub Pages.
+Terms are maintained as Turtle (`.ttl`) files in this repo, one file per concept. On every merge to `main`, the CI pipeline validates all terms and publishes a searchable HTML page and a merged `glossary.ttl` to GitHub Pages.
 
 **[→ Browse the glossary](https://christoffer-sannes-statnett.github.io/glossary-poc/)**
 
@@ -18,27 +18,32 @@ Use the GitHub issue forms to suggest changes. A reviewer will label your issue 
 
 ---
 
-## Contributing — YAML
+## Contributing — Turtle
 
-Each term is a single file in `terms/`. The filename must match the slug.
+Each term is a single `.ttl` file in `terms/`. The filename stem must match the `skos:notation`.
 
-```yaml
-# yaml-language-server: $schema=../schema/term.schema.json
-slug: MY_TERM
-"no": Mitt begrep
-nn: Mitt begrep
-en: My term
-description_no: >
-  Valgfri forklaring på norsk.
-description_en: >
-  Optional explanation in English.
+```turtle
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix elhub: <https://glossary.elhub.no/concept/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+elhub:MY_TERM a skos:Concept ;
+    skos:notation "MY_TERM" ;
+    skos:prefLabel "My term"@en,
+        "Mitt begrep"@no ;
+    skos:definition "Optional explanation in English."@en,
+        "Valgfri forklaring på norsk."@no ;
+    skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    adms:status "active" .
 ```
 
 **Rules:**
-- `slug` is permanent — choose carefully (SCREAMING_SNAKE_CASE, ASCII only)
-- `"no"` must be quoted (YAML 1.1 treats bare `no` as boolean)
-- Descriptions are optional for self-explanatory terms
-- To deprecate, add `replaces: OTHER_SLUG` — status is inferred automatically
+- Filename stem must be `SCREAMING_SNAKE_CASE`, ASCII only (no Æ/Ø/Å)
+- `skos:notation` must match the filename stem exactly
+- `@no` (Bokmål) and `@en` labels are required; `@nn` (Nynorsk) is optional — omit it when identical to `@no`
+- Descriptions (`skos:definition`) are optional for self-explanatory terms
+- Hierarchy is expressed via `skos:broader` on the narrower term only
+- To deprecate, set `adms:status "deprecated"` and optionally add `owl:sameAs <replacement IRI>`
 
 **Local setup:**
 
@@ -50,19 +55,36 @@ uv run python scripts/generate.py  # preview output in dist/
 
 ---
 
+## Repository structure
+
+| Path | Description |
+|---|---|
+| `terms/<SLUG>.ttl` | One SKOS concept per file — source of truth |
+| `rdf/scheme.ttl` | `skos:ConceptScheme` declaration |
+| `rdf/domain.ttl` | Lightweight OWL ontology scaffold |
+| `dist/` | Generated at CI time, not committed |
+
+---
+
 ## For developers
 
-The pipeline publishes machine-readable JSON on every merge to `main`. Use these endpoints to integrate the glossary into your app or service.
+The pipeline publishes machine-readable artefacts on every merge to `main`.
 
 | Endpoint | Description |
 |---|---|
+| [`/glossary.ttl`](https://christoffer-sannes-statnett.github.io/glossary-poc/glossary.ttl) | Merged Turtle graph — all terms + scheme |
 | [`/terms.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/terms.json) | Full list of all terms with all fields |
 | [`/no.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/no.json) | Flat `slug → Bokmål label` map |
 | [`/nn.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/nn.json) | Flat `slug → Nynorsk label` map |
 | [`/en.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/en.json) | Flat `slug → English label` map |
 | [`/children.json`](https://christoffer-sannes-statnett.github.io/glossary-poc/children.json) | Reverse index: `parent slug → [child slugs]` |
 
-**Runtime fetch** — always reflects the current glossary:
+**Turtle / SPARQL** — load `glossary.ttl` directly into any triple store or RDF tool:
+```bash
+curl https://christoffer-sannes-statnett.github.io/glossary-poc/glossary.ttl
+```
+
+**Runtime fetch (JSON)** — always reflects the current glossary:
 ```js
 const terms = await fetch('https://christoffer-sannes-statnett.github.io/glossary-poc/terms.json')
   .then(r => r.json())
@@ -72,21 +94,21 @@ const mp = terms.find(t => t.slug === 'MP')
 // { slug: 'MP', no: 'Målepunkt', en: 'Metering Point', ... }
 
 // List parents of a term
-mp.parents  // e.g. ['METERING']
+mp.parents  // e.g. ['EAV']
 
 // List children of a parent (client-side filter)
-terms.filter(t => (t.parents ?? []).includes('PRODUCTION_TYPE'))
+terms.filter(t => (t.parents ?? []).includes('PROD_GROUP'))
 ```
 
-**Children index** — pre-built reverse lookup, no client-side filtering needed:
+**Children index** — pre-built reverse lookup:
 ```js
 const children = await fetch('https://christoffer-sannes-statnett.github.io/glossary-poc/children.json')
   .then(r => r.json())
 
-children['PRODUCTION_TYPE']  // ['WIND_ONSHORE', 'WIND_OFFSHORE', 'SOLAR', ...]
+children['PROD_GROUP']  // ['HYDRO', 'SOLAR', ...]
 ```
 
-**Locale map** — useful for dropdown labels, enum display names, column headers:
+**Locale map** — useful for dropdown labels, enum display names:
 ```js
 const labels = await fetch('https://christoffer-sannes-statnett.github.io/glossary-poc/no.json')
   .then(r => r.json())

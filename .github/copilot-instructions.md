@@ -64,4 +64,3 @@ Approve if:
 - No conceptual overlap with existing terms without a deprecation relationship
 
 Request changes if any of the above are not met, or if the term appears to be a duplicate of an existing entry.
-

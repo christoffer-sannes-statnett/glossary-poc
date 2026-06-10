@@ -1,103 +1,112 @@
 #!/usr/bin/env python3
 """
-generate.py — reads terms/*.yml, validates against schema/term.schema.json, emits:
+generate.py — reads terms/*.ttl + rdf/scheme.ttl, validates, emits:
   dist/terms.json          full term objects array
   dist/en.json             flat { slug: label } locale map
   dist/no.json             flat { slug: label } locale map
   dist/nn.json             flat { slug: label } locale map
+  dist/glossary.ttl        merged Turtle graph
   dist/index.html          self-contained searchable HTML table
 """
 
-import json
 import sys
 from pathlib import Path
 
-import yaml
-import jsonschema
+from rdflib import Graph, Namespace, RDF, Literal, URIRef
+from rdflib.namespace import SKOS
+import json
 
 ROOT = Path(__file__).parent.parent
 TERMS_DIR = ROOT / "terms"
-SCHEMA_FILE = ROOT / "schema" / "term.schema.json"
+RDF_DIR = ROOT / "rdf"
 DIST_DIR = ROOT / "dist"
+SCHEME_IRI = URIRef("https://glossary.elhub.no/scheme/business-glossary")
+ELHUB = Namespace("https://glossary.elhub.no/concept/")
+ADMS = Namespace("http://www.w3.org/ns/adms#")
 
 
-def load_terms() -> list[dict]:
-    with SCHEMA_FILE.open() as f:
-        schema = json.load(f)
+def load_graph() -> Graph:
+    g = Graph()
+    g.parse(RDF_DIR / "scheme.ttl", format="turtle")
+    g.parse(RDF_DIR / "domain.ttl", format="turtle")
+    for path in sorted(TERMS_DIR.glob("*.ttl")):
+        g.parse(path, format="turtle")
+    return g
 
+
+def lang_map(g: Graph, subject: URIRef, predicate) -> dict[str, str]:
+    """Return {lang: value} for all language-tagged literals of a predicate."""
+    return {
+        str(o.language): str(o)
+        for o in g.objects(subject, predicate)
+        if isinstance(o, Literal) and o.language
+    }
+
+
+def load_terms(g: Graph) -> list[dict]:
     terms = []
-    errors = []
-    slugs_seen = set()
-
-    for path in sorted(TERMS_DIR.glob("*.yml")):
-        with path.open() as f:
-            data = yaml.safe_load(f)
-
-        try:
-            jsonschema.validate(instance=data, schema=schema)
-        except jsonschema.ValidationError as e:
-            errors.append(f"{path.name}: {e.message}")
+    for concept in g.subjects(RDF.type, SKOS.Concept):
+        notations = list(g.objects(concept, SKOS.notation))
+        if not notations:
             continue
+        notation = str(notations[0])
 
-        slug = data["slug"]
-        if slug != path.stem:
-            errors.append(f"{path.name}: slug '{slug}' does not match filename '{path.stem}'")
-            continue
+        labels = lang_map(g, concept, SKOS.prefLabel)
+        definitions = lang_map(g, concept, SKOS.definition)
 
-        if slug in slugs_seen:
-            errors.append(f"{path.name}: duplicate slug '{slug}'")
-            continue
+        # skos:broader → list of notation strings
+        parents = []
+        for broader in g.objects(concept, SKOS.broader):
+            broader_notations = list(g.objects(broader, SKOS.notation))
+            if broader_notations:
+                parents.append(str(broader_notations[0]))
 
-        slugs_seen.add(slug)
+        statuses = list(g.objects(concept, ADMS.status))
+        status = str(statuses[0]) if statuses else "active"
 
-        # Infer status: deprecated if replaces is set, otherwise active
-        if "status" not in data:
-            data["status"] = "deprecated" if data.get("replaces") else "active"
+        replaces_list = list(g.objects(concept, SKOS.related))  # use skos:related for deprecated→replacement
+        replaces = None
+        for obj in g.objects(concept, SKOS.exactMatch):  # convention: exactMatch for replaces
+            replaces = str(obj).removeprefix(str(ELHUB))
 
-        terms.append(data)
+        term = {
+            "slug": notation,
+            "no": labels.get("no", ""),
+            "nn": labels.get("nn", labels.get("no", "")),  # fall back to no if nn absent. okay or just leave the empty string?
+            "en": labels.get("en", ""),
+            "status": status,
+        }
+        if definitions.get("no"):
+            term["description_no"] = definitions["no"].strip()
+        if definitions.get("en"):
+            term["description_en"] = definitions["en"].strip()
+        if parents:
+            term["parents"] = sorted(parents)
+        if replaces:
+            term["replaces"] = replaces
 
-    # Second pass: validate parent slugs exist and no self-references
-    for term in terms:
-        for parent in term.get("parents", []):
-            if parent == term["slug"]:
-                errors.append(f"{term['slug']}.yml: slug cannot list itself as a parent")
-            elif parent not in slugs_seen:
-                errors.append(f"{term['slug']}.yml: parent slug '{parent}' does not exist")
+        terms.append(term)
 
-    if errors:
-        print("Validation errors:", file=sys.stderr)
-        for err in errors:
-            print(f"  - {err}", file=sys.stderr)
-        sys.exit(1)
-
+    # Sort alphabetically by slug
+    terms.sort(key=lambda t: t["slug"])
     return terms
 
 
 def emit_json(terms: list[dict]) -> None:
     DIST_DIR.mkdir(exist_ok=True)
 
-    def clean(t: dict) -> dict:
-        out = dict(t)
-        for field in ("description_no", "description_en"):
-            if field in out and out[field]:
-                out[field] = out[field].strip()
-        return out
-
-    cleaned = [clean(t) for t in terms]
-
     (DIST_DIR / "terms.json").write_text(
-        json.dumps(cleaned, ensure_ascii=False, indent=2), encoding="utf-8"
+        json.dumps(terms, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
     for lang in ("en", "no", "nn"):
-        locale = {t["slug"]: t[lang] for t in cleaned}
+        locale = {t["slug"]: t[lang] for t in terms}
         (DIST_DIR / f"{lang}.json").write_text(
             json.dumps(locale, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
-    # Reverse index: parent slug → list of child slugs
     children: dict[str, list[str]] = {}
-    for t in cleaned:
+    for t in terms:
         for parent in t.get("parents") or []:
             children.setdefault(parent, []).append(t["slug"])
     (DIST_DIR / "children.json").write_text(
@@ -105,9 +114,26 @@ def emit_json(terms: list[dict]) -> None:
     )
 
 
+def emit_turtle(g: Graph) -> None:
+    DIST_DIR.mkdir(exist_ok=True)
+    ttl = g.serialize(format="turtle")
+    header = (
+        "# This file is auto-generated by scripts/generate.py.\n"
+        "# Do not edit it directly; changes will be overwritten on the next build.\n"
+        "# Source of truth: terms/*.ttl, rdf/scheme.ttl, rdf/domain.ttl\n"
+        "#\n"
+    )
+    (DIST_DIR / "glossary.ttl").write_text(header + ttl, encoding="utf-8")
+
+
 def emit_html(terms: list[dict]) -> None:
     template_path = Path(__file__).parent / "template.html"
     template = template_path.read_text(encoding="utf-8")
+    banner = (
+        "<!-- This file is auto-generated by scripts/generate.py.\n"
+        "     Do not edit it directly; changes will be overwritten on the next build.\n"
+        "     Source of truth: terms/*.ttl, rdf/scheme.ttl, rdf/domain.ttl -->\n"
+    )
 
     rows = []
     for t in terms:
@@ -117,11 +143,9 @@ def emit_html(terms: list[dict]) -> None:
 
         parents_attr = ",".join(t.get("parents") or [])
 
-        parents_pills = ""
-        if t.get("parents"):
-            parents_pills = "".join(
-                f'<span class="parent-pill">{p}</span>' for p in t["parents"]
-            )
+        parents_pills = "".join(
+            f'<span class="parent-pill">{p}</span>' for p in (t.get("parents") or [])
+        )
 
         desc_no = (t.get("description_no") or "").strip().replace("\n", " ")
         desc_en = (t.get("description_en") or "").strip().replace("\n", " ")
@@ -140,13 +164,18 @@ def emit_html(terms: list[dict]) -> None:
             f'    </tr>'
         )
 
-    html = template.replace("<!-- ROWS_PLACEHOLDER -->", "\n".join(rows))
+    html = banner + template.replace("<!-- ROWS_PLACEHOLDER -->", "\n".join(rows))
     (DIST_DIR / "index.html").write_text(html, encoding="utf-8")
 
 
 def main() -> None:
-    terms = load_terms()
+    g = load_graph()
+    terms = load_terms(g)
+    if not terms:
+        print("No terms found.", file=sys.stderr)
+        sys.exit(1)
     emit_json(terms)
+    emit_turtle(g)
     emit_html(terms)
     print(f"Generated {len(terms)} terms → dist/")
 

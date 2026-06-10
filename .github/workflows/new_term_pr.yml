@@ -30,6 +30,7 @@ jobs:
           #   https://github.com/actions/create-github-app-token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          pip install rdflib -q
           python3 - <<'PYEOF'
           import os, re, subprocess, sys
 
@@ -52,8 +53,8 @@ jobs:
           parents_raw    = field("Overordnede begrep (valgfritt)")
           parents        = [p.strip().upper() for p in parents_raw.split(",") if p.strip()] if parents_raw else []
 
-          if not slug or not en or not no or not nn:
-              print("ERROR: slug, English label, Bokmål, and Nynorsk are required.", file=sys.stderr)
+          if not slug or not en or not no:
+              print("ERROR: slug, English label, and Bokmål are required.", file=sys.stderr)
               sys.exit(1)
 
           slug_pattern = re.compile(r'^[A-Z][A-Z0-9_]*$')
@@ -61,27 +62,55 @@ jobs:
               print(f"ERROR: slug '{slug}' is not valid SCREAMING_SNAKE_CASE.", file=sys.stderr)
               sys.exit(1)
 
-          term_path = f"terms/{slug}.yml"
+          term_path = f"terms/{slug}.ttl"
           if os.path.exists(term_path):
               print(f"ERROR: {term_path} already exists.", file=sys.stderr)
               sys.exit(1)
 
+          SCHEME = "https://glossary.elhub.no/scheme/business-glossary"
+          CONCEPT = f"https://glossary.elhub.no/concept/{slug}"
+
           lines = [
-              "# yaml-language-server: $schema=../schema/term.schema.json",
-              f"slug: {slug}",
-              f'"no": {no}',
-              f"nn: {nn}",
-              f"en: {en}",
+              '@prefix adms: <http://www.w3.org/ns/adms#> .',
+              '@prefix elhub: <https://glossary.elhub.no/concept/> .',
+              '@prefix skos: <http://www.w3.org/2004/02/skos/core#> .',
+              '',
+              f'elhub:{slug} a skos:Concept ;',
+              f'    skos:notation "{slug}" ;',
           ]
+
+          # prefLabels
+          pref_labels = [f'        "{en}"@en', f'        "{no}"@no']
+          if nn and nn != no:
+              pref_labels.append(f'        "{nn}"@nn')
+          lines.append('    skos:prefLabel ' + ',\n'.join(pref_labels) + ' ;')
+
+          # definitions
+          defs = []
           if description_no:
-              lines += ["description_no: >", f"  {description_no}"]
+              defs.append(f'        "{description_no}"@no')
           if description_en:
-              lines += ["description_en: >", f"  {description_en}"]
-          if parents:
-              lines.append("parents:")
-              for p in parents:
-                  lines.append(f"  - {p}")
-          content = "\n".join(lines) + "\n"
+              defs.append(f'        "{description_en}"@en')
+          if defs:
+              lines.append('    skos:definition ' + ',\n'.join(defs) + ' ;')
+
+          # broader
+          for parent in parents:
+              lines.append(f'    skos:broader elhub:{parent} ;')
+
+          lines.append(f'    skos:inScheme <{SCHEME}> ;')
+          lines.append('    adms:status "active" .')
+          lines.append('')
+
+          content = '\n'.join(lines)
+
+          # Validate that the generated Turtle is parseable before committing
+          import rdflib
+          try:
+              rdflib.Graph().parse(data=content, format='turtle')
+          except Exception as e:
+              print(f"ERROR: generated Turtle is invalid — {e}", file=sys.stderr)
+              sys.exit(1)
 
           with open(term_path, "w") as f:
               f.write(content)
@@ -94,7 +123,7 @@ jobs:
           subprocess.run(["git", "commit", "-m", f"feat: add term {slug} (closes #{issue_n})"], check=True)
           subprocess.run(["git", "push", "origin", branch], check=True)
 
-          pr_body = f"Adds **{slug}** as requested in #{issue_n}.\n\nPlease review the generated YAML before merging."
+          pr_body = f"Adds **{slug}** as requested in #{issue_n}.\n\nPlease review the generated Turtle before merging."
           subprocess.run([
               "gh", "pr", "create",
               "--title", f"Add term: {slug}",

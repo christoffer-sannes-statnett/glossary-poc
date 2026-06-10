@@ -3,11 +3,16 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 
 elhub:EAV a skos:Concept ;
-    skos:notation "EAV" ;
-    skos:prefLabel "Estimated annual volume"@en,
-        "Estimert årlig volum"@no,
-        "Estimert årlig volum"@nn ;
-    skos:definition "Collective term for estimated annual consumption and -production"@en,
+    skos:definition """The method used to settle a metering point in Energy IP. Can be Not Settled, Interval, Profile or Net Interval, as well as Unknown.
+
+Only metering points with this parameter in Energy IP will be picked up by the imbalance settlement job and used in the calculations.
+
+The parameter is Energy IP specific and not part of EIM"""@en,
         "Samlebetegnelse for estimert årlig forbruk og -produksjon"@no ;
     skos:inScheme <https://glossary.elhub.no/scheme/business-glossary> ;
+    skos:notation "EAV" ;
+    skos:prefLabel "Estimated annual volume"@en,
+        "Estimert årlig volum"@nn,
+        "Estimert årlig volum"@no ;
     adms:status "active" .
+
